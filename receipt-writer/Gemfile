@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
+
+gem 'httparty'
+
+group :test do
+  gem 'mocha'
+  gem 'test-unit'
+end

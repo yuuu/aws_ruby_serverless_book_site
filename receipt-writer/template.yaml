@@ -1,0 +1,129 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  receipt-writer
+
+  Sample SAM Template for receipt-writer
+
+Globals:
+  Function:
+    MemorySize: 128
+
+Parameters:
+  SlackSigningSecret:
+    Type: String
+    Description: Slack Signing Secret
+  SlackApiToken:
+    Type: String
+    Description: Slack API Token
+  BucketName:
+    Type: String
+    Description: S3 Bucket Name
+
+Resources:
+  EnqueueFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: enqueue/
+      Handler: app.lambda_handler
+      Runtime: ruby3.2
+      Timeout: 3
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !Ref MessageQueue
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+          QUEUE_NAME: !Ref MessageQueue
+      Events:
+        Enqueue:
+          Type: Api
+          Properties:
+            Path: /enqueue
+            Method: post
+  DequeueFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: dequeue/
+      Handler: app.lambda_handler
+      Runtime: ruby3.2
+      Timeout: 10
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref ReceiptBucket
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ReceiptBucket
+          SLACK_API_TOKEN: !Ref SlackApiToken
+      Events:
+        Dequeue:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MessageQueue.Arn
+  WriteReceiptFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: write_receipt/
+      Handler: app.lambda_handler
+      Runtime: ruby3.2
+      Timeout: 10
+      Policies:
+        - S3FullAccessPolicy:
+            BucketName: !Ref BucketName
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          SLACK_API_TOKEN: !Ref SlackApiToken
+      Events:
+        S3:
+          Type: S3
+          Properties:
+            Bucket: !Ref ReceiptBucket
+            Events: s3:ObjectCreated:*
+  MessageQueue:
+    Type: AWS::SQS::Queue
+  MessageQueuePolicy: 
+    Type: AWS::SQS::QueuePolicy
+    Properties: 
+      PolicyDocument: 
+        Id: !Ref MessageQueue
+        Statement: 
+          - Effect: Allow
+            Principal: "*"
+            Action: "SQS:*"
+            Resource: !GetAtt MessageQueue.Arn
+      Queues:
+        - !Ref MessageQueue
+  ReceiptBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref BucketName
+
+Outputs:
+  EnqueueApi:
+    Description: "API Gateway endpoint URL for Prod stage for Enqueue function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/enqueue/"
+  EnqueueFunction:
+    Description: "Enqueue Lambda Function ARN"
+    Value: !GetAtt EnqueueFunction.Arn
+  EnqueueFunctionIamRole:
+    Description: "Implicit IAM Role created for Enqueue function"
+    Value: !GetAtt EnqueueFunctionRole.Arn
+  DequeueFunction:
+    Description: "Dequeue Lambda Function ARN"
+    Value: !GetAtt DequeueFunction.Arn
+  DequeueFunctionIamRole:
+    Description: "Implicit IAM Role created for Dequeue function"
+    Value: !GetAtt DequeueFunction.Arn
+  WriteReceiptFunction:
+    Description: "Write Receipt Lambda Function ARN"
+    Value: !GetAtt WriteReceiptFunction.Arn
+  WriteReceiptFunctionIamRole:
+    Description: "Implicit IAM Role created for Write Receipt function"
+    Value: !GetAtt WriteReceiptFunction.Arn
+

@@ -1,0 +1,46 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  world-clock-api
+
+  Sample SAM Template for world-clock-api
+
+Globals:
+  Function:
+    Timeout: 10
+    MemorySize: 128
+
+Parameters:
+  SlackSigningSecret:
+    Type: String
+    Description: Slack Signing Secret
+
+Resources:
+  WorldClockFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: world_clock/
+      Handler: app.lambda_handler
+      Runtime: ruby3.2
+      Environment:
+        Variables:
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+      Architectures:
+        - x86_64
+      Events:
+        WorldClockApi:
+          Type: Api
+          Properties:
+            Path: /world_clock
+            Method: post
+
+Outputs:
+  WorldClockApi:
+    Description: "API Gateway endpoint URL for Prod stage for World Clock function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/world_clock/"
+  WorldClockFunction:
+    Description: "World Clock Lambda Function ARN"
+    Value: !GetAtt WorldClockFunction.Arn
+  WorldClockFunctionIamRole:
+    Description: "Implicit IAM Role created for World Clock function"
+    Value: !GetAtt WorldClockFunctionRole.Arn

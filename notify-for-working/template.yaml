@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  notify-for-working
+
+  Sample SAM Template for notify-for-working
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+    MemorySize: 128
+
+Parameters:
+  SlackSigningSecret:
+    Type: String
+    Description: Slack Signing Secret
+  SlackApiToken:
+    Type: String
+    Description: Slack API Token
+  SlackChannel:
+    Type: String
+    Description: Slack Channel
+
+Resources:
+  RecordWorkingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: record_working/
+      Handler: app.lambda_handler
+      Runtime: ruby3.2
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref WorkingStatuses
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          TABLE_NAME: !Ref WorkingStatuses
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
+      Events:
+        RecordWorking:
+          Type: Api
+          Properties:
+            Path: /record-working
+            Method: post
+  NotifyWorkingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: notify_working/
+      Handler: app.lambda_handler
+      Runtime: ruby3.2
+      Policies:
+        - DynamoDBStreamReadPolicy:
+            TableName: !Ref WorkingStatuses
+            StreamName: !GetAtt WorkingStatuses.StreamArn
+      Architectures:
+        - x86_64
+      Environment:
+        Variables:
+          SLACK_API_TOKEN: !Ref SlackApiToken
+          SLACK_CHANNEL: !Ref SlackChannel
+      Events:
+        NotifyWorking:
+          Type: DynamoDB
+          Properties:
+            Stream: !GetAtt WorkingStatuses.StreamArn
+            BatchSize: 100
+            StartingPosition: TRIM_HORIZON
+  WorkingStatuses:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      AttributeDefinitions: 
+        - AttributeName: slack_id
+          AttributeType: S
+      KeySchema: 
+        - AttributeName: slack_id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+      StreamSpecification:
+        StreamViewType: NEW_IMAGE
+
+
+Outputs:
+  RecordWorkingApi:
+    Description: "API Gateway endpoint URL for Prod stage for Record Working function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/record-working/"
+  RecordWorkingFunction:
+    Description: "Record Working Lambda Function ARN"
+    Value: !GetAtt RecordWorkingFunction.Arn
+  RecordWorkingFunctionIamRole:
+    Description: "Implicit IAM Role created for Record Working function"
+    Value: !GetAtt RecordWorkingFunctionRole.Arn
+  NotifyWorkingFunction:
+    Description: "Notify Working Lambda Function ARN"
+    Value: !GetAtt NotifyWorkingFunction.Arn
+  NotifyWorkingFunctionIamRole:
+    Description: "Implicit IAM Role created for Notify Working function"
+    Value: !GetAtt NotifyWorkingFunctionRole.Arn
