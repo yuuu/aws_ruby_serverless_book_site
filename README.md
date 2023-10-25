@@ -2,7 +2,9 @@
 
 本リポジトリは技術書典15で頒布した技術書「AWSとRubyではじめるサーバーレス入門」のサンプルWebアプリケーション＆サポートページです。
 
-TODO
+![表紙・裏表紙](https://github.com/yuuu/aws_ruby_serverless_book_site/assets/8074640/31aa906d-cf8f-4728-adad-36189e4342a7)
+
+![Slack Bot](https://github.com/yuuu/aws_ruby_serverless_book_site/assets/8074640/08bd4d6d-2908-4296-a1ef-d5f2f8818fa8)
 
 ## ディレクトリ構成
 
