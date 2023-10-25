@@ -23,7 +23,7 @@ def verify_request(event)
 end
 
 def create_local_time(time_str, zone_abbreviation)
-  time = Time.parse(time_str) - (9 * 60 * 60)
+  time = Time.parse(time_str)
 
   zone = TZInfo::Timezone.all.find { _1.abbreviation == zone_abbreviation }
   raise "Timezone not found: #{zone_abbreviation}" if zone.nil?

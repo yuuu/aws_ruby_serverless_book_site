@@ -22,11 +22,12 @@ Resources:
       CodeUri: world_clock/
       Handler: app.lambda_handler
       Runtime: ruby3.2
-      Environment:
-        Variables:
-          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
       Architectures:
         - x86_64
+      Environment:
+        Variables:
+          TZ: Asia/Tokyo
+          SLACK_SIGNING_SECRET: !Ref SlackSigningSecret
       Events:
         WorldClockApi:
           Type: Api
