@@ -57,6 +57,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
+          TZ: Asia/Tokyo
           BUCKET_NAME: !Ref ReceiptBucket
           SLACK_API_TOKEN: !Ref SlackApiToken
       Events:
@@ -78,6 +79,7 @@ Resources:
         - x86_64
       Environment:
         Variables:
+          TZ: Asia/Tokyo
           SLACK_API_TOKEN: !Ref SlackApiToken
       Events:
         S3:
