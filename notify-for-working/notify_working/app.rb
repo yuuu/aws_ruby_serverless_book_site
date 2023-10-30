@@ -27,7 +27,7 @@ def post_message(client, text)
 end
 
 def notify_working(client, slack_id, working)
-  message = "#{user_name(client, slack_id)} #{working ? 'started' : 'finished'} working."
+  message = "#{user_name(client, slack_id)} has #{working ? 'started' : 'finished'} working."
   logger.info(message)
   post_message(client, message)
 end
