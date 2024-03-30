@@ -25,6 +25,7 @@
 | ページ | 箇所 | 誤 | 正 | 補足 |
 | ---- | ---- | ---- | ---- | ---- |
 | P.34, 35, 39 | 図3.8, 表3.1, 図3.13 | PDT | PST | PDTは太平洋夏時間であり、夏時間の期間中(3月の第2日曜日午前2時から11月の第1日曜日午前2時まで)に限り使用可能でした。代わりにPSTを使用ください。 |
+| P.63 | リスト 4.12 | notify-for-working/record_working/Gemfile | notify-for-working/notify_working/Gemfile | |
 
 ## 指摘・質問がある場合
 
